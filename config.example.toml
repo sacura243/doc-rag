@@ -1,0 +1,20 @@
+# 复制本文件为 config.toml 并填入你的讯飞密钥（或在环境变量里设置）
+appid = "你的APPID"
+apikey = "你的APIKey"
+apisecret = "你的APISecret"
+
+# 向量化后端：
+#   "local"（默认） = 本地免费 bge 模型，离线、无需授权，首次运行自动下载模型
+#   "xfyun"        = 讯飞文本向量化（新版本），需在讯飞平台单独申请授权
+embed_backend = "local"
+
+# 可选配置
+# ws_url = "wss://spark-api.xf-yun.com/v1.1/chat"
+# domain = "lite"
+# temperature = 0.3
+# db_dir = "./chroma_db"
+# collection = "docs"
+# chunk_size = 600
+# chunk_overlap = 120
+# embed_model = "BAAI/bge-small-zh-v1.5"
+# embed_cache_dir = "./models"

@@ -1,0 +1,8 @@
+﻿requests>=2.31
+websocket-client>=1.6
+pypdf>=4.0
+python-docx>=1.1
+chromadb>=0.4
+# 本地向量化（默认 embed_backend = "local" 时需要；讯飞方案可不装）
+fastembed>=0.8
+onnxruntime>=1.24
