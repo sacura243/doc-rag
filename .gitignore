@@ -3,6 +3,7 @@ __pycache__/
 chroma_db/
 models/
 test_resume/
+test_output/
 config.toml
 .venv/
 venv/
