@@ -2,7 +2,7 @@
 import os
 import sys
 from dataclasses import dataclass
-from typing import Mapping, Optional
+from typing import Optional
 
 
 @dataclass
@@ -34,7 +34,7 @@ def _load_toml(path: str) -> dict:
         return tomllib.load(f)
 
 
-def load_config(config_path: Optional[str] = None, overrides: Optional[Mapping[str, object]] = None) -> Config:
+def load_config(config_path: Optional[str] = None) -> Config:
     cfg = Config(
         appid=os.getenv("XF_APPID", ""),
         apikey=os.getenv("XF_APIKEY", ""),
@@ -49,14 +49,6 @@ def load_config(config_path: Optional[str] = None, overrides: Optional[Mapping[s
         ):
             if k in d:
                 setattr(cfg, k, d[k])
-    if overrides:
-        for k in (
-            "appid", "apikey", "apisecret", "ws_url", "domain", "temperature",
-            "emb_url", "db_dir", "collection", "chunk_size", "chunk_overlap",
-            "max_text_len", "embed_backend", "embed_model", "embed_cache_dir",
-        ):
-            if k in overrides and overrides[k] not in (None, ""):
-                setattr(cfg, k, overrides[k])
     # embedding 密钥回退
     if not cfg.appid:
         cfg.appid = os.getenv("XF_EMB_APPID", "")

@@ -56,13 +56,3 @@ doc-rag/
 
 - `config.toml`、`chroma_db/`、`models/` 不会上传到 GitHub。
 - 本项目默认运行在 `127.0.0.1`，资料和知识库仅保留在本机。
-
-## Streamlit Cloud 在线演示部署
-
-可以部署为公开演示链接，但请不要把密钥写进 GitHub。
-
-1. 在 Streamlit Cloud 选择仓库 `sacura243/doc-rag`、分支 `main`、主文件 `app.py`。
-2. 在部署页面的 **Advanced settings -> Secrets** 粘贴 `streamlit_secrets.example.toml` 的内容，并替换为自己的讯飞密钥。
-3. 点击 Deploy。
-
-注意：免费演示实例的本地磁盘不是永久存储。服务重启、休眠或重新部署后，上传资料和 Chroma 索引可能被清空；正式产品需要接入云端对象存储和托管数据库。
