@@ -41,23 +41,30 @@ def ingest_folder(cfg: Config, folder: str) -> int:
     return result["files"]
 
 
+def retrieve_sources(cfg: Config, question: str, top_k: int = 4) -> list[dict]:
+    """Retrieve source chunks without calling the LLM; used by the evaluation page."""
+    store = VectorStore(cfg.db_dir, cfg.collection)
+    chunk_count = store.count()
+    if chunk_count == 0:
+        return []
+    result = store.query(embed_query(question, cfg), min(top_k, chunk_count))
+    return [
+        {
+            "source": result["metadatas"][0][index].get("source", "unknown"),
+            "content": document,
+            "page": result["metadatas"][0][index].get("page"),
+        }
+        for index, document in enumerate(result["documents"][0])
+    ]
+
+
 def ask_with_sources(cfg: Config, question: str, top_k: int = 4) -> tuple[str, list[dict]]:
     store = VectorStore(cfg.db_dir, cfg.collection)
     chunk_count = store.count()
     if chunk_count == 0:
         return "\u77e5\u8bc6\u5e93\u4e3a\u7a7a\uff0c\u8bf7\u5148\u5bfc\u5165\u6587\u6863\u3002", []
 
-    result = store.query(embed_query(question, cfg), min(top_k, chunk_count))
-    docs = result["documents"][0]
-    metadatas = result["metadatas"][0]
-    sources = []
-    for index, document in enumerate(docs):
-        source = {
-            "source": metadatas[index].get("source", "unknown"),
-            "content": document,
-            "page": metadatas[index].get("page"),
-        }
-        sources.append(source)
+    sources = retrieve_sources(cfg, question, top_k)
 
     context = "\n\n".join(
         f"[\u6765\u6e90: {item['source']}{' | \u7b2c' + str(item['page']) + '\u9875' if item['page'] else ''}]\n{item['content']}"

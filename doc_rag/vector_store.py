@@ -49,3 +49,11 @@ class VectorStore:
         self.collection = self.client.get_or_create_collection(
             name=self.collection_name, metadata={"hnsw:space": "cosine"}
         )
+
+    def delete_source(self, source: str) -> int:
+        """Delete every indexed chunk originating from one source file."""
+        records = self.collection.get(where={"source": source}, include=[])
+        ids = records.get("ids", [])
+        if ids:
+            self.collection.delete(ids=ids)
+        return len(ids)
