@@ -5,6 +5,9 @@ models/
 test_resume/
 test_output/
 config.toml
+.streamlit/secrets.toml
+uploaded_docs/
+test_product_db*/
 .venv/
 venv/
 *.log

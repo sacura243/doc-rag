@@ -55,7 +55,16 @@ def apply_style() -> None:
 
 @st.cache_resource
 def get_config():
-    return load_config(str(PROJECT_DIR / "config.toml"))
+    local_config = PROJECT_DIR / "config.toml"
+    if local_config.exists():
+        return load_config(str(local_config))
+
+    # Streamlit Cloud keeps API credentials in its encrypted Secrets store.
+    try:
+        secrets = dict(st.secrets)
+    except Exception:
+        secrets = {}
+    return load_config(overrides=secrets)
 
 
 def get_store(cfg) -> VectorStore:
