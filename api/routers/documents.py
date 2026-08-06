@@ -66,7 +66,7 @@ def rebuild_documents(_user: AccessTokenUser = Depends(require_admin)) -> dict:
     cfg = load_config()
     paths = [path for path in settings.upload_dir.glob("*") if path.suffix.lower() in {".txt", ".pdf", ".docx"}]
     store = VectorStore(cfg.db_dir, cfg.collection)
-    store.reset()
+    store.delete_workspace("default")
     if not paths:
         return {"files": 0, "chunks": 0, "total_chunks": 0}
     return ingest_files(cfg, [str(path) for path in paths], workspace_id="default")

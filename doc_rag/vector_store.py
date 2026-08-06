@@ -58,6 +58,14 @@ class VectorStore:
             name=self.collection_name, metadata={"hnsw:space": "cosine"}
         )
 
+    def delete_workspace(self, workspace_id: str) -> int:
+        """Delete chunks belonging to one workspace without affecting others."""
+        records = self.collection.get(where={"workspace_id": workspace_id}, include=[])
+        ids = records.get("ids", [])
+        if ids:
+            self.collection.delete(ids=ids)
+        return len(ids)
+
     def delete_source(self, source: str, workspace_id: str | None = None) -> int:
         """Delete every indexed chunk originating from one source file."""
         where = {"source": source}

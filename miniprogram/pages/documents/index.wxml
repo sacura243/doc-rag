@@ -1,1 +1,23 @@
-<view class="page"><view class="heading">资料管理</view><view class="sub">已导入的企业资料</view><view wx:for="{{items}}" wx:key="id" class="item"><view><view class="name">{{item.name}}</view><view class="meta">{{item.chunks}} 个知识片段</view></view><button wx:if="{{isAdmin}}" class="delete" data-id="{{item.id}}" bindtap="deleteDocument">删除</button></view><view wx:if="{{!items.length}}" class="empty">暂未导入资料</view><button wx:if="{{isAdmin}}" class="upload" bindtap="chooseFile">上传资料</button></view>
+<view class="page">
+  <view class="heading-row">
+    <view>
+      <view class="heading">资料管理</view>
+      <view class="sub">已导入的企业资料</view>
+    </view>
+    <button wx:if="{{isAdmin}}" class="rebuild" loading="{{rebuilding}}" bindtap="rebuildDocuments">重建索引</button>
+  </view>
+  <view wx:if="{{errorMessage}}" class="error">{{errorMessage}}</view>
+  <view wx:if="{{uploading}}" class="progress-panel">
+    <view class="progress-label">正在导入资料 {{uploadProgress}}%</view>
+    <progress percent="{{uploadProgress}}" active stroke-width="6" activeColor="#0f766e" backgroundColor="#dbe5e5" />
+  </view>
+  <view wx:for="{{items}}" wx:key="id" class="item">
+    <view class="item-main">
+      <view class="name">{{item.name}}</view>
+      <view class="meta">{{item.chunks}} 个知识片段</view>
+    </view>
+    <button wx:if="{{isAdmin}}" class="delete" data-id="{{item.id}}" bindtap="deleteDocument">删除</button>
+  </view>
+  <view wx:if="{{!items.length && !uploading}}" class="empty">暂无导入资料</view>
+  <button wx:if="{{isAdmin}}" class="upload" loading="{{uploading}}" bindtap="chooseFile">上传资料</button>
+</view>

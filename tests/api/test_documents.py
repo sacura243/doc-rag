@@ -92,3 +92,53 @@ def test_member_can_read_document_list(monkeypatch, tmp_path):
         async with httpx.AsyncClient(transport=transport,base_url="http://test") as client:
             return await client.get('/api/v1/documents',headers={'Authorization':f'Bearer {token}'})
     assert asyncio.run(listing()).status_code == 200
+
+
+def test_administrator_rebuild_clears_only_default_workspace(monkeypatch, tmp_path):
+    upload_dir = tmp_path / "uploads"
+    upload_dir.mkdir()
+    (upload_dir / "guide.txt").write_text("knowledge base content", encoding="utf-8")
+    monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
+    monkeypatch.setenv("API_UPLOAD_DIR", str(upload_dir))
+    monkeypatch.setenv("API_JWT_SECRET", "test-signing-secret-with-32-bytes")
+
+    from api.routers import documents
+
+    monkeypatch.setattr(documents, "load_config", lambda: __import__("doc_rag.config", fromlist=["Config"]).Config())
+    monkeypatch.setattr(
+        documents,
+        "ingest_files",
+        lambda *_args, **_kwargs: {"files": 1, "chunks": 2, "total_chunks": 2},
+    )
+
+    class FakeStore:
+        deleted_workspace = None
+
+        def __init__(self, *_args):
+            pass
+
+        def reset(self):
+            raise AssertionError("rebuild must not reset every workspace")
+
+        def delete_workspace(self, workspace_id):
+            FakeStore.deleted_workspace = workspace_id
+
+    monkeypatch.setattr(documents, "VectorStore", FakeStore)
+    token = create_access_token(
+        User(id="admin-id", openid="admin", role="admin"),
+        "test-signing-secret-with-32-bytes",
+    )
+
+    async def rebuild() -> httpx.Response:
+        transport = httpx.ASGITransport(app=create_app())
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/api/v1/documents/rebuild",
+                headers={"Authorization": f"Bearer {token}"},
+            )
+
+    response = asyncio.run(rebuild())
+
+    assert response.status_code == 200
+    assert response.json() == {"files": 1, "chunks": 2, "total_chunks": 2}
+    assert FakeStore.deleted_workspace == "default"

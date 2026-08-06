@@ -2,5 +2,5 @@
   <view class="hero"><text class="eyebrow">KNOWLEDGE ASSISTANT</text><text class="title">知答库</text><text class="subtitle">企业资料智能问答与来源追溯</text></view>
   <view class="stats"><view><text class="number">{{documentCount}}</text><text class="label">资料</text></view><view><text class="number">{{chunkCount}}</text><text class="label">片段</text></view><view><text class="number">{{questionCount}}</text><text class="label">次提问</text></view></view>
   <view class="panel"><text class="panel-title">向知识库提问</text><textarea class="question" maxlength="1000" placeholder="例如：退款申请的处理时效是什么？" value="{{question}}" bindinput="onQuestionInput"></textarea><button class="ask" loading="{{loading}}" bindtap="askQuestion">{{loading ? '检索中...' : '开始问答'}}</button></view>
-  <view wx:if="{{answer}}" class="panel"><text class="panel-title">回答</text><text class="answer">{{answer}}</text></view>
+  <view wx:if="{{answer}}" class="panel"><text class="panel-title">回答</text><text class="answer">{{answer}}</text><view wx:if="{{sources.length}}" class="sources"><text class="sources-title">参考资料</text><view wx:for="{{sources}}" wx:key="index" class="source"><view class="source-meta"><text class="source-name">{{item.name}}</text><text wx:if="{{item.page}}" class="source-page">第 {{item.page}} 页</text></view><text class="source-content">{{item.content}}</text></view></view></view>
 </view>
