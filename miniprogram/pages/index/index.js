@@ -3,9 +3,13 @@ const { request } = require('../../utils/request')
 Page({
   data: {
     documents: [], documentCount: 0, chunkCount: 0, questionCount: 0,
-    question: '', answer: '', sources: [], loading: false, overviewError: ''
+    question: '', answer: '', sources: [], loading: false, overviewError: '', isAdmin: false
   },
-  onShow() { this.loadOverview() },
+  onShow() {
+    const user = getApp().globalData.user
+    this.setData({ isAdmin: Boolean(user && user.role === 'admin') })
+    this.loadOverview()
+  },
   loadOverview() {
     request({ path: '/documents' })
       .then(result => {
