@@ -1,7 +1,26 @@
 const { request } = require('../../utils/request')
 
 Page({
-  data: { documentCount: 0, chunkCount: 0, questionCount: 0, question: '', answer: '', sources: [], loading: false },
+  data: {
+    documents: [], documentCount: 0, chunkCount: 0, questionCount: 0,
+    question: '', answer: '', sources: [], loading: false, overviewError: ''
+  },
+  onShow() { this.loadOverview() },
+  loadOverview() {
+    request({ path: '/documents' })
+      .then(result => {
+        const documents = result.items || []
+        this.setData({
+          documents,
+          documentCount: documents.length,
+          chunkCount: documents.reduce((total, item) => total + Number(item.chunks || 0), 0),
+          overviewError: ''
+        })
+      })
+      .catch(error => this.setData({ overviewError: error.message }))
+  },
+  openDocuments() { wx.switchTab({ url: '/pages/documents/index' }) },
+  chooseFile() { this.openDocuments() },
   onQuestionInput(e) { this.setData({ question: e.detail.value }) },
   askQuestion() {
     const question = this.data.question.trim()
