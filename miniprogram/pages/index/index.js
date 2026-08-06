@@ -6,9 +6,14 @@ Page({
     question: '', answer: '', sources: [], loading: false, overviewError: '', isAdmin: false
   },
   onShow() {
-    const user = getApp().globalData.user
-    this.setData({ isAdmin: Boolean(user && user.role === 'admin') })
-    this.loadOverview()
+    const app = getApp()
+    const syncSession = user => {
+      this.setData({ isAdmin: Boolean(user && user.role === 'admin') })
+      this.loadOverview()
+    }
+    const user = app.globalData.user
+    if (app.globalData.environment === 'development' && (!user || user.role !== 'admin')) return app.login(syncSession)
+    syncSession(user)
   },
   loadOverview() {
     request({ path: '/documents' })

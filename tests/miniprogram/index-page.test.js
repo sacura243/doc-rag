@@ -41,7 +41,7 @@ test('homepage loads document overview and exposes document shortcuts', async ()
   let definition
   const switchTabCalls = []
   global.Page = page => { definition = page }
-  global.getApp = () => ({ globalData: { apiBaseUrl: 'http://test/api/v1', user: { role: 'admin' } } })
+  global.getApp = () => ({ globalData: { apiBaseUrl: 'http://test/api/v1', environment: 'production', user: { role: 'admin' } }, login: callback => callback({ role: 'admin' }) })
   global.wx = {
     getStorageSync: () => 'test-token',
     showToast: () => {},
