@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+import os
 
 from api.config import load_api_settings
 from api.dependencies import AccessTokenUser, require_user
@@ -25,6 +26,18 @@ def wechat_login(request: WeChatLoginRequest) -> WeChatLoginResponse:
         access_token=create_access_token(user, settings.jwt_secret),
         user=CurrentUserResponse(id=user.id, role=user.role),
     )
+
+
+@router.post("/development", response_model=WeChatLoginResponse)
+def development_login() -> WeChatLoginResponse:
+    if os.getenv("API_ENV", "development") != "development":
+        raise HTTPException(status_code=404, detail="Not found")
+    settings = load_api_settings()
+    if not settings.jwt_secret:
+        raise HTTPException(status_code=503, detail="Authentication is not configured")
+    openid = os.getenv("WECHAT_DEV_OPENID", "local-admin")
+    user = UserRepository(settings.database_path).get_or_create(openid, {openid})
+    return WeChatLoginResponse(access_token=create_access_token(user, settings.jwt_secret), user=CurrentUserResponse(id=user.id, role=user.role))
 
 
 @router.get("/me", response_model=CurrentUserResponse)
