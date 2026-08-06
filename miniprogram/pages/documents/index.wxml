@@ -2,22 +2,22 @@
   <view class="heading-row">
     <view>
       <view class="heading">资料管理</view>
-      <view class="sub">已导入的企业资料</view>
+      <view class="sub">统一维护回答所依据的企业资料</view>
     </view>
     <button wx:if="{{isAdmin}}" class="rebuild" loading="{{rebuilding}}" bindtap="rebuildDocuments">重建索引</button>
   </view>
-  <view wx:if="{{errorMessage}}" class="error">{{errorMessage}}</view>
-  <view wx:if="{{uploading}}" class="progress-panel">
-    <view class="progress-label">正在导入资料 {{uploadProgress}}%</view>
-    <progress percent="{{uploadProgress}}" active stroke-width="6" activeColor="#0f766e" backgroundColor="#dbe5e5" />
+
+  <view wx:if="{{errorMessage}}" class="error"><text>{{errorMessage}}</text></view>
+
+  <view wx:if="{{isAdmin}}" class="upload-panel">
+    <view class="upload-panel-top"><view class="upload-symbol">+</view><view class="upload-copy"><text class="upload-title">导入知识资料</text><text class="upload-note">上传后会自动解析并建立检索索引</text></view></view>
+    <view class="upload-rule"><text>支持 TXT、PDF、DOCX</text><text>单文件不超过 10 MB</text></view>
+    <button class="upload" loading="{{uploading}}" disabled="{{uploading}}" bindtap="chooseFile">选择文件上传</button>
   </view>
-  <view wx:for="{{items}}" wx:key="id" class="item">
-    <view class="item-main">
-      <view class="name">{{item.name}}</view>
-      <view class="meta">{{item.chunks}} 个知识片段</view>
-    </view>
-    <button wx:if="{{isAdmin}}" class="delete" data-id="{{item.id}}" bindtap="deleteDocument">删除</button>
-  </view>
-  <view wx:if="{{!items.length && !uploading}}" class="empty">暂无导入资料</view>
-  <button wx:if="{{isAdmin}}" class="upload" loading="{{uploading}}" bindtap="chooseFile">上传资料</button>
+
+  <view wx:if="{{uploading}}" class="progress-panel"><view class="progress-label"><text>正在导入资料</text><text>{{uploadProgress}}%</text></view><progress percent="{{uploadProgress}}" active stroke-width="6" activeColor="#0f766e" backgroundColor="#dbe5e5" /></view>
+
+  <view class="list-head"><view><text class="list-title">已导入资料</text><text class="list-note">{{items.length}} 份资料</text></view></view>
+  <view wx:for="{{items}}" wx:key="id" class="item"><view class="file-badge">DOC</view><view class="item-main"><view class="name">{{item.name}}</view><view class="meta">{{item.chunks}} 个知识片段</view></view><button wx:if="{{isAdmin}}" class="delete" data-id="{{item.id}}" bindtap="deleteDocument">删除</button></view>
+  <view wx:if="{{!items.length && !uploading}}" class="empty"><view class="empty-symbol">+</view><text class="empty-title">还没有导入资料</text><text class="empty-copy">上传制度、手册或流程文档后开始问答</text><button wx:if="{{isAdmin}}" class="empty-action" bindtap="chooseFile">上传第一份资料</button></view>
 </view>
