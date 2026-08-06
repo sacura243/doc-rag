@@ -2,6 +2,7 @@
 import os
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Optional
 
 
@@ -35,6 +36,10 @@ def _load_toml(path: str) -> dict:
 
 
 def load_config(config_path: Optional[str] = None) -> Config:
+    if config_path is None:
+        default_path = Path.cwd() / "config.toml"
+        if default_path.is_file():
+            config_path = str(default_path)
     cfg = Config(
         appid=os.getenv("XF_APPID", ""),
         apikey=os.getenv("XF_APIKEY", ""),
