@@ -2,6 +2,10 @@ __pycache__/
 *.pyc
 chroma_db/
 models/
+api.sqlite3
+uploaded_docs/
+.env
+miniprogram/project.private.config.json
 test_resume/
 test_output/
 config.toml

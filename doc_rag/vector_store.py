@@ -19,15 +19,23 @@ class VectorStore:
         ids = [str(uuid.uuid4()) for _ in texts]
         self.collection.add(ids=ids, documents=texts, metadatas=metadatas, embeddings=embeddings)
 
-    def query(self, embedding: list, top_k: int = 4) -> dict:
-        return self.collection.query(query_embeddings=[embedding], n_results=top_k)
+    def query(self, embedding: list, top_k: int = 4, workspace_id: str | None = None) -> dict:
+        query_args = {"query_embeddings": [embedding], "n_results": top_k}
+        if workspace_id is not None:
+            query_args["where"] = {"workspace_id": workspace_id}
+        return self.collection.query(**query_args)
 
-    def count(self) -> int:
-        return self.collection.count()
+    def count(self, workspace_id: str | None = None) -> int:
+        if workspace_id is None:
+            return self.collection.count()
+        return len(self.collection.get(where={"workspace_id": workspace_id}, include=[]).get("ids", []))
 
-    def source_summary(self) -> list[dict]:
+    def source_summary(self, workspace_id: str | None = None) -> list[dict]:
         """Return one record per imported source with its chunk count."""
-        data = self.collection.get(include=["metadatas"])
+        get_args = {"include": ["metadatas"]}
+        if workspace_id is not None:
+            get_args["where"] = {"workspace_id": workspace_id}
+        data = self.collection.get(**get_args)
         grouped: dict[tuple[str, int | None], int] = {}
         for metadata in data.get("metadatas", []):
             source = metadata.get("source", "unknown")
@@ -50,9 +58,12 @@ class VectorStore:
             name=self.collection_name, metadata={"hnsw:space": "cosine"}
         )
 
-    def delete_source(self, source: str) -> int:
+    def delete_source(self, source: str, workspace_id: str | None = None) -> int:
         """Delete every indexed chunk originating from one source file."""
-        records = self.collection.get(where={"source": source}, include=[])
+        where = {"source": source}
+        if workspace_id is not None:
+            where = {"$and": [{"source": source}, {"workspace_id": workspace_id}]}
+        records = self.collection.get(where=where, include=[])
         ids = records.get("ids", [])
         if ids:
             self.collection.delete(ids=ids)

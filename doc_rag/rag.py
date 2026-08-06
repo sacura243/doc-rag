@@ -9,7 +9,7 @@ from .readers import iter_docs, read_file_sections
 from .vector_store import VectorStore
 
 
-def ingest_files(cfg: Config, file_paths: list[str]) -> dict:
+def ingest_files(cfg: Config, file_paths: list[str], workspace_id: str = "default") -> dict:
     store = VectorStore(cfg.db_dir, cfg.collection)
     texts, metadatas, imported_files = [], [], []
 
@@ -21,7 +21,7 @@ def ingest_files(cfg: Config, file_paths: list[str]) -> dict:
             if not content.strip():
                 continue
             for chunk in split_text(content, cfg.chunk_size, cfg.chunk_overlap):
-                metadata = {"source": path}
+                metadata = {"source": path, "workspace_id": workspace_id}
                 if section["page"] is not None:
                     metadata["page"] = section["page"]
                 texts.append(chunk)
@@ -41,13 +41,13 @@ def ingest_folder(cfg: Config, folder: str) -> int:
     return result["files"]
 
 
-def retrieve_sources(cfg: Config, question: str, top_k: int = 4) -> list[dict]:
+def retrieve_sources(cfg: Config, question: str, top_k: int = 4, workspace_id: str = "default") -> list[dict]:
     """Retrieve source chunks without calling the LLM; used by the evaluation page."""
     store = VectorStore(cfg.db_dir, cfg.collection)
-    chunk_count = store.count()
+    chunk_count = store.count(workspace_id=workspace_id)
     if chunk_count == 0:
         return []
-    result = store.query(embed_query(question, cfg), min(top_k, chunk_count))
+    result = store.query(embed_query(question, cfg), min(top_k, chunk_count), workspace_id=workspace_id)
     return [
         {
             "source": result["metadatas"][0][index].get("source", "unknown"),
@@ -58,13 +58,13 @@ def retrieve_sources(cfg: Config, question: str, top_k: int = 4) -> list[dict]:
     ]
 
 
-def ask_with_sources(cfg: Config, question: str, top_k: int = 4) -> tuple[str, list[dict]]:
+def ask_with_sources(cfg: Config, question: str, top_k: int = 4, workspace_id: str = "default") -> tuple[str, list[dict]]:
     store = VectorStore(cfg.db_dir, cfg.collection)
-    chunk_count = store.count()
+    chunk_count = store.count(workspace_id=workspace_id)
     if chunk_count == 0:
         return "\u77e5\u8bc6\u5e93\u4e3a\u7a7a\uff0c\u8bf7\u5148\u5bfc\u5165\u6587\u6863\u3002", []
 
-    sources = retrieve_sources(cfg, question, top_k)
+    sources = retrieve_sources(cfg, question, top_k, workspace_id=workspace_id)
 
     context = "\n\n".join(
         f"[\u6765\u6e90: {item['source']}{' | \u7b2c' + str(item['page']) + '\u9875' if item['page'] else ''}]\n{item['content']}"
