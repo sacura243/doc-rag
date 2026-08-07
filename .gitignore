@@ -5,6 +5,7 @@ models/
 api.sqlite3
 uploaded_docs/
 .env
+deploy/.env.production
 miniprogram/project.private.config.json
 test_resume/
 test_output/
