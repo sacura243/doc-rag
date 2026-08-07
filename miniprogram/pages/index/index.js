@@ -12,7 +12,7 @@ Page({
       this.loadOverview()
     }
     const user = app.globalData.user
-    if (app.globalData.environment === 'development' && (!user || user.role !== 'admin')) return app.login(syncSession)
+    if (!user || (app.globalData.environment === 'development' && user.role !== 'admin')) return app.login(syncSession)
     syncSession(user)
   },
   loadOverview() {

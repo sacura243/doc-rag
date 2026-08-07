@@ -79,3 +79,30 @@ test('homepage loads document overview and exposes document shortcuts', async ()
     { url: '/pages/documents/index' }
   ])
 })
+
+test('production homepage waits for real login before loading documents', () => {
+  let definition
+  let loginCalls = 0
+  let overviewCalls = 0
+  global.Page = page => { definition = page }
+  global.getApp = () => ({
+    globalData: { environment: 'production', user: null },
+    login: callback => { loginCalls += 1; callback({ role: 'member' }) }
+  })
+  global.wx = { showToast: () => {} }
+
+  const pageModule = path.resolve(__dirname, '../../miniprogram/pages/index/index.js')
+  delete require.cache[pageModule]
+  require(pageModule)
+
+  const context = {
+    data: { isAdmin: false },
+    setData(update) { Object.assign(this.data, update) },
+    loadOverview() { overviewCalls += 1 }
+  }
+
+  definition.onShow.call(context)
+
+  assert.equal(loginCalls, 1)
+  assert.equal(overviewCalls, 1)
+})
