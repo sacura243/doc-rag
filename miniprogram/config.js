@@ -2,7 +2,8 @@ const ENVIRONMENT = 'development'
 
 const environments = {
   development: {
-    apiBaseUrl: 'http://127.0.0.1:8010/api/v1',
+    // 当前电脑的局域网地址，供微信开发者工具/真机访问；换网络后改成电脑新 IP。
+    apiBaseUrl: 'http://192.168.1.155:8010/api/v1',
     loginPath: '/auth/development'
   },
   production: {

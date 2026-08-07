@@ -8,7 +8,7 @@ test('runtime config selects local API and development login by default', () => 
   const config = require(modulePath)
 
   assert.equal(config.environment, 'development')
-  assert.equal(config.apiBaseUrl, 'http://127.0.0.1:8010/api/v1')
+  assert.equal(config.apiBaseUrl, 'http://192.168.1.155:8010/api/v1')
   assert.equal(config.loginPath, '/auth/development')
 })
 

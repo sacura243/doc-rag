@@ -17,7 +17,7 @@ cd D:\Pythonstudy\PythonProject\doc-rag-wechat
 powershell -ExecutionPolicy Bypass -File .\scripts\start_api.ps1
 ```
 
-浏览器打开 `http://127.0.0.1:8010/api/v1/health`。显示 `{"status":"ok"}` 即表示服务已启动。
+浏览器打开 `http://192.168.1.155:8010/api/v1/health`。显示 `{"status":"ok"}` 即表示服务已启动。若电脑局域网地址变化，需要同步修改 `miniprogram/config.js`。
 
 若问答或导入提示模型服务不可用，将原项目中本机私有的 `config.toml` 复制到当前工作树根目录。该文件含密钥，不能提交 Git 或发送到聊天：
 
@@ -46,4 +46,4 @@ Copy-Item D:\Pythonstudy\PythonProject\doc-rag\config.toml .\config.toml
 4. 后端设置 `WECHAT_APPID`、`WECHAT_APPSECRET`、`API_JWT_SECRET` 和 `WECHAT_ADMIN_OPENIDS`。不要提交或发送这些值。
 5. 使用 `/auth/wechat` 完成真实微信登录，并完成微信审核、备案和发布流程。
 
-真机无法访问 `127.0.0.1`。真机预览前需要部署 HTTPS API，或在同一局域网下改为电脑的局域网 IP 进行临时调试。
+真机和部分微信开发者工具环境无法访问 `127.0.0.1`。当前开发配置使用电脑局域网地址 `192.168.1.155`；换网络后要改成新的局域网 IP。正式发布仍需要 HTTPS API。
