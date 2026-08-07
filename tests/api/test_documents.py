@@ -7,6 +7,52 @@ from api.services.auth import create_access_token
 from api.services.users import User
 
 
+class _DownloadResponse:
+    status_code = 200
+    headers = {"content-length": "21"}
+
+    def raise_for_status(self):
+        return None
+
+    def iter_bytes(self, chunk_size=65536):
+        yield b"knowledge base content"
+
+
+class _DownloadClient:
+    def __init__(self, *_args, **_kwargs):
+        pass
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_args):
+        return False
+
+    def stream(self, *_args, **_kwargs):
+        class _Context:
+            def __enter__(self):
+                return _DownloadResponse()
+
+            def __exit__(self, *_args):
+                return False
+
+        return _Context()
+
+
+class _LargeDownloadClient(_DownloadClient):
+    def stream(self, *_args, **_kwargs):
+        class _Context:
+            def __enter__(self):
+                response = _DownloadResponse()
+                response.headers = {"content-length": str(11 * 1024 * 1024)}
+                return response
+
+            def __exit__(self, *_args):
+                return False
+
+        return _Context()
+
+
 def test_administrator_can_upload_supported_document(monkeypatch, tmp_path):
     monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
     monkeypatch.setenv("API_UPLOAD_DIR", str(tmp_path / "uploads"))
@@ -32,6 +78,113 @@ def test_administrator_can_upload_supported_document(monkeypatch, tmp_path):
     assert response.status_code == 201
     assert response.json() == {"files": 1, "chunks": 2, "total_chunks": 2}
     assert len(list((tmp_path / "uploads").glob("*.txt"))) == 1
+
+
+def test_administrator_can_import_document_from_cloud_storage_url(monkeypatch, tmp_path):
+    upload_dir = tmp_path / "uploads"
+    monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
+    monkeypatch.setenv("API_UPLOAD_DIR", str(upload_dir))
+    monkeypatch.setenv("API_JWT_SECRET", "test-signing-secret-with-32-bytes")
+
+    from api.services import files
+    from api.routers import documents
+
+    monkeypatch.setattr(files.httpx, "Client", _DownloadClient)
+    monkeypatch.setattr(documents, "load_config", lambda: __import__("doc_rag.config", fromlist=["Config"]).Config())
+    monkeypatch.setattr(documents, "ingest_files", lambda *_args, **_kwargs: {"files": 1, "chunks": 2, "total_chunks": 2})
+    token = create_access_token(User(id="admin-id", openid="admin", role="admin"), "test-signing-secret-with-32-bytes")
+
+    async def import_document() -> httpx.Response:
+        transport = httpx.ASGITransport(app=create_app())
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/api/v1/documents/import-url",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"url": "https://storage.example.com/file.txt", "filename": "guide.txt"},
+            )
+
+    response = asyncio.run(import_document())
+
+    assert response.status_code == 201
+    assert response.json() == {"files": 1, "chunks": 2, "total_chunks": 2}
+    assert len(list(upload_dir.glob("*.txt"))) == 1
+
+
+def test_member_cannot_import_document_from_cloud_storage_url(monkeypatch, tmp_path):
+    monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
+    monkeypatch.setenv("API_JWT_SECRET", "test-signing-secret-with-32-bytes")
+    token = create_access_token(User(id="member-id", openid="member", role="member"), "test-signing-secret-with-32-bytes")
+
+    async def import_document() -> httpx.Response:
+        transport = httpx.ASGITransport(app=create_app())
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/api/v1/documents/import-url",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"url": "https://storage.example.com/file.txt", "filename": "guide.txt"},
+            )
+
+    response = asyncio.run(import_document())
+    assert response.status_code == 403
+
+
+def test_import_document_rejects_non_https_source(monkeypatch, tmp_path):
+    monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
+    monkeypatch.setenv("API_UPLOAD_DIR", str(tmp_path / "uploads"))
+    monkeypatch.setenv("API_JWT_SECRET", "test-signing-secret-with-32-bytes")
+    token = create_access_token(User(id="admin-id", openid="admin", role="admin"), "test-signing-secret-with-32-bytes")
+
+    async def import_document() -> httpx.Response:
+        transport = httpx.ASGITransport(app=create_app())
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/api/v1/documents/import-url",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"url": "http://storage.example.com/file.txt", "filename": "guide.txt"},
+            )
+
+    response = asyncio.run(import_document())
+    assert response.status_code == 422
+
+
+def test_import_document_rejects_private_storage_address(monkeypatch, tmp_path):
+    monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
+    monkeypatch.setenv("API_JWT_SECRET", "test-signing-secret-with-32-bytes")
+    token = create_access_token(User(id="admin-id", openid="admin", role="admin"), "test-signing-secret-with-32-bytes")
+
+    async def import_document() -> httpx.Response:
+        transport = httpx.ASGITransport(app=create_app())
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/api/v1/documents/import-url",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"url": "https://127.0.0.1/file.txt", "filename": "guide.txt"},
+            )
+
+    response = asyncio.run(import_document())
+    assert response.status_code == 422
+
+
+def test_import_document_rejects_oversized_storage_response(monkeypatch, tmp_path):
+    monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
+    monkeypatch.setenv("API_UPLOAD_DIR", str(tmp_path / "uploads"))
+    monkeypatch.setenv("API_JWT_SECRET", "test-signing-secret-with-32-bytes")
+    from api.services import files
+
+    monkeypatch.setattr(files.httpx, "Client", _LargeDownloadClient)
+    token = create_access_token(User(id="admin-id", openid="admin", role="admin"), "test-signing-secret-with-32-bytes")
+
+    async def import_document() -> httpx.Response:
+        transport = httpx.ASGITransport(app=create_app())
+        async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
+            return await client.post(
+                "/api/v1/documents/import-url",
+                headers={"Authorization": f"Bearer {token}"},
+                json={"url": "https://storage.example.com/file.txt", "filename": "guide.txt"},
+            )
+
+    response = asyncio.run(import_document())
+    assert response.status_code == 413
 
 
 def test_administrator_can_list_and_delete_document(monkeypatch, tmp_path):

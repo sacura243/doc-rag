@@ -2,7 +2,8 @@ from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from api.config import load_api_settings
 from api.dependencies import AccessTokenUser, require_admin, require_user
-from api.services.files import save_upload
+from api.schemas import ImportDocumentRequest
+from api.services.files import save_remote_upload, save_upload
 from doc_rag.config import load_config
 from doc_rag.rag import ingest_files
 from doc_rag.vector_store import VectorStore
@@ -43,6 +44,20 @@ async def upload_documents(
     except Exception:
         for path in paths:
             path.unlink(missing_ok=True)
+        raise
+
+
+@router.post("/import-url", status_code=201)
+def import_document_from_url(
+    request: ImportDocumentRequest,
+    _user: AccessTokenUser = Depends(require_admin),
+) -> dict:
+    settings = load_api_settings()
+    path = save_remote_upload(request.url, request.filename, settings.upload_dir)
+    try:
+        return ingest_files(load_config(), [str(path)], workspace_id="default")
+    except Exception:
+        path.unlink(missing_ok=True)
         raise
 
 
