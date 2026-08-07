@@ -43,7 +43,7 @@ def wechat_login(request: WeChatLoginRequest) -> WeChatLoginResponse:
     user = UserRepository(settings.database_path).get_or_create(openid, set(settings.admin_openids))
     return WeChatLoginResponse(
         access_token=create_access_token(user, settings.jwt_secret),
-        user=CurrentUserResponse(id=user.id, role=user.role),
+        user=CurrentUserResponse(id=user.id, role=user.role, openid=user.openid),
     )
 
 
@@ -56,7 +56,10 @@ def development_login() -> WeChatLoginResponse:
         raise HTTPException(status_code=503, detail="Authentication is not configured")
     openid = os.getenv("WECHAT_DEV_OPENID", "local-admin")
     user = UserRepository(settings.database_path).get_or_create(openid, {openid})
-    return WeChatLoginResponse(access_token=create_access_token(user, settings.jwt_secret), user=CurrentUserResponse(id=user.id, role=user.role))
+    return WeChatLoginResponse(
+        access_token=create_access_token(user, settings.jwt_secret),
+        user=CurrentUserResponse(id=user.id, role=user.role, openid=user.openid),
+    )
 
 
 @router.get("/me", response_model=CurrentUserResponse)

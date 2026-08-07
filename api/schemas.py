@@ -13,6 +13,7 @@ class ImportDocumentRequest(BaseModel):
 class CurrentUserResponse(BaseModel):
     id: str
     role: str
+    openid: str | None = None
 
 
 class WeChatLoginResponse(BaseModel):

@@ -30,6 +30,7 @@ def test_wechat_login_returns_administrator_token_for_configured_openid(monkeypa
 
     assert response.status_code == 200
     assert response.json()["user"]["role"] == "admin"
+    assert response.json()["user"]["openid"] == "admin-openid"
     assert response.json()["access_token"].count(".") == 2
 
 
