@@ -81,7 +81,7 @@ def test_wechat_login_translates_provider_timeout_to_bad_gateway(monkeypatch, tm
 
     assert response.status_code == 502
     assert response.json()["detail"] == "WeChat login is unavailable"
-    assert "WeChat login HTTP error type=ConnectError" in caplog.text
+    assert "WeChat login HTTP error type=ConnectError detail=wechat unavailable" in caplog.text
 
 
 def test_wechat_code_exchange_exposes_provider_error_code_to_server_logs(monkeypatch, tmp_path):

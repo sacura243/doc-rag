@@ -14,6 +14,14 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 logger = logging.getLogger(__name__)
 
 
+def safe_http_error_detail(error: httpx.HTTPError, secrets: tuple[str, ...]) -> str:
+    detail = str(error)
+    for secret in secrets:
+        if secret:
+            detail = detail.replace(secret, "[redacted]")
+    return detail[:200]
+
+
 @router.post("/wechat", response_model=WeChatLoginResponse)
 def wechat_login(request: WeChatLoginRequest) -> WeChatLoginResponse:
     settings = load_api_settings()
@@ -25,7 +33,11 @@ def wechat_login(request: WeChatLoginRequest) -> WeChatLoginResponse:
         logger.warning("WeChat login rejected: %s", error)
         raise HTTPException(status_code=502, detail="WeChat login is unavailable") from None
     except httpx.HTTPError as error:
-        logger.warning("WeChat login HTTP error type=%s", type(error).__name__)
+        logger.warning(
+            "WeChat login HTTP error type=%s detail=%s",
+            type(error).__name__,
+            safe_http_error_detail(error, (settings.wechat_appsecret, request.code)),
+        )
         raise HTTPException(status_code=502, detail="WeChat login is unavailable") from None
 
     user = UserRepository(settings.database_path).get_or_create(openid, set(settings.admin_openids))
