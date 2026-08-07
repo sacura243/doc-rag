@@ -1,4 +1,4 @@
-const ENVIRONMENT = 'development'
+const ENVIRONMENT = 'production'
 
 const environments = {
   development: {
@@ -8,7 +8,7 @@ const environments = {
   },
   production: {
     // 发布前填写已备案并已在微信公众平台配置的 HTTPS API 域名。
-    apiBaseUrl: '',
+    apiBaseUrl: 'https://knowledge-api-293465-10-1465019784.sh.run.tcloudbase.com/api/v1',
     loginPath: '/auth/wechat'
   }
 }

@@ -2,14 +2,14 @@ const assert = require('node:assert/strict')
 const test = require('node:test')
 const path = require('node:path')
 
-test('runtime config selects local API and development login by default', () => {
+test('runtime config selects the public API and real WeChat login by default', () => {
   const modulePath = path.resolve(__dirname, '../../miniprogram/config.js')
   delete require.cache[modulePath]
   const config = require(modulePath)
 
-  assert.equal(config.environment, 'development')
-  assert.equal(config.apiBaseUrl, 'http://192.168.1.155:8010/api/v1')
-  assert.equal(config.loginPath, '/auth/development')
+  assert.equal(config.environment, 'production')
+  assert.equal(config.apiBaseUrl, 'https://knowledge-api-293465-10-1465019784.sh.run.tcloudbase.com/api/v1')
+  assert.equal(config.loginPath, '/auth/wechat')
 })
 
 test('production config requires an HTTPS API endpoint and real WeChat login', () => {
@@ -19,5 +19,5 @@ test('production config requires an HTTPS API endpoint and real WeChat login', (
   const config = getRuntimeConfig('production')
 
   assert.equal(config.loginPath, '/auth/wechat')
-  assert.equal(config.apiBaseUrl, '')
+  assert.match(config.apiBaseUrl, /^https:\/\//)
 })

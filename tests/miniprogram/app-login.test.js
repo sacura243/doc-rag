@@ -27,5 +27,5 @@ test('app login invokes completion callback with the current user', async () => 
 
   assert.equal(storedToken, 'test-token')
   assert.deepEqual(callbackUser, { id: 'local-admin', role: 'admin' })
-  assert.equal(definition.globalData.environment, 'development')
+  assert.equal(definition.globalData.environment, 'production')
 })
