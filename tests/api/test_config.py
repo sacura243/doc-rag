@@ -16,6 +16,12 @@ def test_api_settings_read_storage_paths_from_environment(monkeypatch, tmp_path)
     assert settings.database_path == database_path
 
 
+def test_api_settings_can_disable_wechat_tls_verification_for_cloud_proxy(monkeypatch):
+    monkeypatch.setenv("WECHAT_VERIFY_TLS", "false")
+
+    assert load_api_settings().wechat_verify_tls is False
+
+
 def test_rag_config_reads_local_config_toml_when_environment_is_empty(monkeypatch, tmp_path):
     monkeypatch.chdir(tmp_path)
     (tmp_path / "config.toml").write_text(

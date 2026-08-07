@@ -18,6 +18,7 @@ class ApiSettings:
     wechat_appid: str
     wechat_appsecret: str
     admin_openids: frozenset[str]
+    wechat_verify_tls: bool = True
 
 
 def validate_production_settings(settings: ApiSettings) -> None:
@@ -39,6 +40,7 @@ def load_api_settings() -> ApiSettings:
     admin_openids = frozenset(
         openid.strip() for openid in os.getenv("WECHAT_ADMIN_OPENIDS", "").split(",") if openid.strip()
     )
+    verify_tls = os.getenv("WECHAT_VERIFY_TLS", "true").strip().lower() not in {"0", "false", "no", "off"}
     return ApiSettings(
         upload_dir=upload_dir,
         database_path=database_path,
@@ -47,4 +49,5 @@ def load_api_settings() -> ApiSettings:
         wechat_appid=os.getenv("WECHAT_APPID", ""),
         wechat_appsecret=os.getenv("WECHAT_APPSECRET", ""),
         admin_openids=admin_openids,
+        wechat_verify_tls=verify_tls,
     )

@@ -105,3 +105,33 @@ def test_wechat_code_exchange_exposes_provider_error_code_to_server_logs(monkeyp
 
     with pytest.raises(WeChatLoginError, match="40125"):
         exchange_wechat_code("login-code", settings)
+
+
+def test_wechat_code_exchange_uses_configured_tls_verification(monkeypatch, tmp_path):
+    captured = {}
+
+    class ProviderResponse:
+        def raise_for_status(self):
+            return None
+
+        def json(self):
+            return {"openid": "test-openid"}
+
+    def provider_get(*_args, **kwargs):
+        captured.update(kwargs)
+        return ProviderResponse()
+
+    monkeypatch.setattr("api.services.auth.httpx.get", provider_get)
+    settings = ApiSettings(
+        upload_dir=tmp_path,
+        database_path=tmp_path / "users.sqlite3",
+        cors_origins=(),
+        jwt_secret="test-signing-secret-with-32-bytes",
+        wechat_appid="wx-test",
+        wechat_appsecret="test-secret",
+        admin_openids=frozenset(),
+        wechat_verify_tls=False,
+    )
+
+    assert exchange_wechat_code("login-code", settings) == "test-openid"
+    assert captured["verify"] is False

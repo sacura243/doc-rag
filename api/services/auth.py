@@ -31,6 +31,7 @@ def exchange_wechat_code(code: str, settings: ApiSettings) -> str:
             "grant_type": "authorization_code",
         },
         timeout=10,
+        verify=settings.wechat_verify_tls,
     )
     response.raise_for_status()
     payload = response.json()
