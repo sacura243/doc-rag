@@ -14,7 +14,7 @@ This provider-neutral template runs the API behind Caddy. Caddy obtains and rene
 
 6. Verify `https://<API_DOMAIN>/api/v1/health` returns `{"status":"ok"}`.
 
-Before production release, set `ENVIRONMENT` to `production` in `miniprogram/config.js`, put the same HTTPS URL in `production.apiBaseUrl`, and add the domain to WeChat's request合法域名. Real WeChat login also requires the AppID/AppSecret and an admin OpenID on the server; do not send those secrets in chat.
+For the no-custom-domain production path, `miniprogram/config.js` uses `wx.cloud.callContainer` with the CloudBase environment ID and service name. Do not put the cloud-generated `*.sh.run.tcloudbase.com` URL into the mini-program server-domain list; it is for direct testing only. Initialize the same CloudBase environment in the mini program and enable the service's public access. Real WeChat login also requires the AppID/AppSecret and an admin OpenID on the server; do not send those secrets in chat.
 
 Run the release preflight before uploading the mini program:
 

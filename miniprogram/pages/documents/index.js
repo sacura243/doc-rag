@@ -62,6 +62,39 @@ Page({
 
   uploadSingle(file) {
     const app = getApp()
+    if (app.globalData.transport === 'cloud-container') {
+      return new Promise((resolve, reject) => {
+        let fileID = ''
+        const cleanup = () => {
+          if (!fileID || !wx.cloud || !wx.cloud.deleteFile) return
+          wx.cloud.deleteFile({ fileList: [fileID], success: () => {} })
+        }
+        wx.cloud.uploadFile({
+          cloudPath: `documents/${Date.now()}-${file.name}`,
+          filePath: file.path,
+          success: uploadResult => {
+            fileID = uploadResult.fileID
+            wx.cloud.getTempFileURL({
+              fileList: [fileID],
+              success: urlResult => {
+                const item = (urlResult.fileList || []).find(entry => entry.fileID === fileID)
+                if (!item || !item.tempFileURL) {
+                  cleanup()
+                  return reject(new Error('Cloud storage URL unavailable'))
+                }
+                request({
+                  path: '/documents/import-url',
+                  method: 'POST',
+                  data: { url: item.tempFileURL, filename: file.name }
+                }).then(result => { cleanup(); resolve(result) }).catch(error => { cleanup(); reject(error) })
+              },
+              fail: () => { cleanup(); reject(new Error('Cloud storage URL unavailable')) }
+            })
+          },
+          fail: () => reject(new Error('Cloud storage upload failed'))
+        })
+      })
+    }
     return new Promise((resolve, reject) => {
       wx.uploadFile({
         url: `${app.globalData.apiBaseUrl}/documents`,

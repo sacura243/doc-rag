@@ -11,9 +11,9 @@
 ## 微信公众平台
 
 - [ ] 小程序主体完成实名认证；需要备案时，完成 ICP 备案和公安备案要求。
-- [ ] 在“开发管理 > 开发设置 > 服务器域名”配置 request 合法域名：`https://<域名>`。
+- [ ] 若使用自定义域名，在“开发管理 > 开发设置 > 服务器域名”配置 request/uploadFile 合法域名；若使用 CloudBase SDK，则无需把云托管测试域名加入服务器域名。
 - [ ] 服务器环境设置 `API_ENV=production`、`API_JWT_SECRET`、`WECHAT_APPID`、`WECHAT_APPSECRET` 和管理员 OpenID。
-- [ ] `miniprogram/config.js` 的 `ENVIRONMENT` 改为 `production`，并填写同一个 HTTPS API 地址。
+- [ ] `miniprogram/config.js` 的 `ENVIRONMENT` 改为 `production`，并确认 `transport`、CloudBase 环境 ID 和服务名正确。
 - [ ] 执行 `node scripts/check_release.js`，通过后再上传体验版。
 
 ## 审核说明建议
