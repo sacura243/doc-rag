@@ -2,12 +2,16 @@
 from __future__ import annotations
 
 from datetime import UTC, datetime, timedelta
+import logging
 
 import httpx
 import jwt
 
 from api.config import ApiSettings
 from api.services.users import User
+
+
+logger = logging.getLogger(__name__)
 
 
 class WeChatLoginError(RuntimeError):
@@ -32,6 +36,10 @@ def exchange_wechat_code(code: str, settings: ApiSettings) -> str:
     payload = response.json()
     openid = payload.get("openid")
     if not openid:
+        error_code = payload.get("errcode")
+        if error_code is not None:
+            logger.warning("WeChat jscode2session failed with errcode=%s", error_code)
+            raise WeChatLoginError(f"WeChat provider error {error_code}")
         raise WeChatLoginError("WeChat did not return an OpenID")
     return openid
 
