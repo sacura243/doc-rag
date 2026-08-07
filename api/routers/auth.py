@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException
 import httpx
+import logging
 import os
 
 from api.config import load_api_settings
@@ -10,6 +11,7 @@ from api.services.users import UserRepository
 
 
 router = APIRouter(prefix="/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 
 
 @router.post("/wechat", response_model=WeChatLoginResponse)
@@ -19,7 +21,11 @@ def wechat_login(request: WeChatLoginRequest) -> WeChatLoginResponse:
         raise HTTPException(status_code=503, detail="Authentication is not configured")
     try:
         openid = exchange_wechat_code(request.code, settings)
-    except (WeChatLoginError, httpx.HTTPError):
+    except WeChatLoginError as error:
+        logger.warning("WeChat login rejected: %s", error)
+        raise HTTPException(status_code=502, detail="WeChat login is unavailable") from None
+    except httpx.HTTPError as error:
+        logger.warning("WeChat login HTTP error type=%s", type(error).__name__)
         raise HTTPException(status_code=502, detail="WeChat login is unavailable") from None
 
     user = UserRepository(settings.database_path).get_or_create(openid, set(settings.admin_openids))

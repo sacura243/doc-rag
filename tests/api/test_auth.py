@@ -59,7 +59,7 @@ def test_administrator_guard_rejects_member_user():
     assert error.value.detail == "Administrator access required"
 
 
-def test_wechat_login_translates_provider_timeout_to_bad_gateway(monkeypatch, tmp_path):
+def test_wechat_login_translates_provider_timeout_to_bad_gateway(monkeypatch, tmp_path, caplog):
     monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
     monkeypatch.setenv("API_JWT_SECRET", "test-signing-secret-with-32-bytes")
     monkeypatch.setenv("WECHAT_APPID", "test-appid")
@@ -81,6 +81,7 @@ def test_wechat_login_translates_provider_timeout_to_bad_gateway(monkeypatch, tm
 
     assert response.status_code == 502
     assert response.json()["detail"] == "WeChat login is unavailable"
+    assert "WeChat login HTTP error type=ConnectError" in caplog.text
 
 
 def test_wechat_code_exchange_exposes_provider_error_code_to_server_logs(monkeypatch, tmp_path):
