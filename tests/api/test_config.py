@@ -1,4 +1,6 @@
-from api.config import load_api_settings
+import pytest
+
+from api.config import load_api_settings, validate_production_settings
 from doc_rag.config import load_config
 
 
@@ -28,3 +30,24 @@ def test_rag_config_reads_local_config_toml_when_environment_is_empty(monkeypatc
     assert config.appid == "local-app"
     assert config.apikey == "local-key"
     assert config.apisecret == "local-secret"
+
+
+def test_production_settings_reject_missing_auth_and_explicit_cors(monkeypatch):
+    monkeypatch.setenv("API_ENV", "production")
+    monkeypatch.setenv("API_JWT_SECRET", "short")
+    monkeypatch.delenv("WECHAT_APPID", raising=False)
+    monkeypatch.delenv("WECHAT_APPSECRET", raising=False)
+    monkeypatch.setenv("API_CORS_ORIGINS", "http://localhost")
+
+    with pytest.raises(ValueError, match="API_JWT_SECRET"):
+        validate_production_settings(load_api_settings())
+
+
+def test_production_settings_accept_valid_configuration(monkeypatch):
+    monkeypatch.setenv("API_ENV", "production")
+    monkeypatch.setenv("API_JWT_SECRET", "a" * 48)
+    monkeypatch.setenv("WECHAT_APPID", "wx-test")
+    monkeypatch.setenv("WECHAT_APPSECRET", "secret")
+    monkeypatch.setenv("API_CORS_ORIGINS", "https://servicewechat.com")
+
+    validate_production_settings(load_api_settings())

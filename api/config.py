@@ -20,6 +20,18 @@ class ApiSettings:
     admin_openids: frozenset[str]
 
 
+def validate_production_settings(settings: ApiSettings) -> None:
+    """Fail closed when the API is started with production authentication settings."""
+    if len(settings.jwt_secret) < 32:
+        raise ValueError("API_JWT_SECRET must be at least 32 characters in production")
+    if not settings.wechat_appid:
+        raise ValueError("WECHAT_APPID is required in production")
+    if not settings.wechat_appsecret:
+        raise ValueError("WECHAT_APPSECRET is required in production")
+    if not settings.cors_origins or any(not origin.startswith("https://") for origin in settings.cors_origins):
+        raise ValueError("API_CORS_ORIGINS must contain HTTPS origins only in production")
+
+
 def load_api_settings() -> ApiSettings:
     upload_dir = Path(os.getenv("API_UPLOAD_DIR", PROJECT_DIR / "uploaded_docs"))
     database_path = Path(os.getenv("API_DATABASE_PATH", PROJECT_DIR / "api.sqlite3"))

@@ -15,3 +15,9 @@ This provider-neutral template runs the API behind Caddy. Caddy obtains and rene
 6. Verify `https://<API_DOMAIN>/api/v1/health` returns `{"status":"ok"}`.
 
 Before production release, set `ENVIRONMENT` to `production` in `miniprogram/config.js`, put the same HTTPS URL in `production.apiBaseUrl`, and add the domain to WeChat's request合法域名. Real WeChat login also requires the AppID/AppSecret and an admin OpenID on the server; do not send those secrets in chat.
+
+Run the release preflight before uploading the mini program:
+
+```sh
+node scripts/check_release.js
+```

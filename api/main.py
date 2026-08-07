@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from api.config import load_api_settings
+import os
+
+from api.config import load_api_settings, validate_production_settings
 from api.routers.auth import router as auth_router
 from api.routers.chat import router as chat_router
 from api.routers.documents import router as documents_router
@@ -10,6 +12,8 @@ from api.routers.health import router as health_router
 
 def create_app() -> FastAPI:
     settings = load_api_settings()
+    if os.getenv("API_ENV", "development") == "production":
+        validate_production_settings(settings)
     app = FastAPI(title="Enterprise Knowledge Base API", version="0.1.0")
     app.add_middleware(
         CORSMiddleware,
