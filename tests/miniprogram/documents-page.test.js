@@ -106,3 +106,33 @@ test('production upload uses CloudBase storage then imports the temporary URL', 
   assert.equal(calls[2][1].path, '/api/v1/documents/import-url')
   assert.deepEqual(calls[2][1].data, { url: 'https://storage.example.com/one.txt', filename: 'one.txt' })
 })
+
+test('delete encodes document names before calling the CloudBase container', async () => {
+  const calls = []
+  const loaded = loadPage({
+    apiBaseUrl: '',
+    transport: 'cloud-container',
+    cloudEnv: 'prod-d6gkf5lgbb9d67abc',
+    cloudService: 'knowledge-api',
+    user: { role: 'admin' }
+  })
+  global.wx.showModal = options => options.success({ confirm: true })
+  global.wx.cloud = {
+    callContainer: options => {
+      calls.push(options)
+      options.success({ statusCode: 200, data: { deleted_chunks: 3 } })
+    }
+  }
+  const context = {
+    data: { errorMessage: '' },
+    setData(update) { Object.assign(this.data, update) },
+    loadDocuments: () => {}
+  }
+
+  loaded.definition.deleteDocument.call(context, {
+    currentTarget: { dataset: { id: '曾李孟 简历 AI岗_企业知识库版_投递版 (1).pdf' } }
+  })
+  await new Promise(resolve => setImmediate(resolve))
+
+  assert.equal(calls[0].path, `/api/v1/documents/${encodeURIComponent('曾李孟 简历 AI岗_企业知识库版_投递版 (1).pdf')}`)
+})

@@ -40,7 +40,7 @@ Page({
       content: '删除后将无法检索该资料，是否继续？',
       success: result => {
         if (!result.confirm) return
-        request({ path: `/documents/${e.currentTarget.dataset.id}`, method: 'DELETE' })
+        request({ path: `/documents/${encodeURIComponent(e.currentTarget.dataset.id)}`, method: 'DELETE' })
           .then(() => {
             wx.showToast({ title: '已删除', icon: 'success' })
             this.loadDocuments()
