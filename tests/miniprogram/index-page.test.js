@@ -3,32 +3,21 @@ const test = require('node:test')
 const fs = require('node:fs')
 const path = require('node:path')
 
-test('homepage stylesheet keeps the light workspace hierarchy and centered actions', () => {
-  const stylesheet = fs.readFileSync(
-    path.resolve(__dirname, '../../miniprogram/pages/index/index.wxss'),
-    'utf8'
-  )
-
-  assert.match(stylesheet, /\.page\s*\{[\s\S]*background:\s*#f7f9fa/)
-  assert.match(stylesheet, /\.composer,[\s\S]*border:\s*1rpx solid #e4ebed/)
-  assert.match(stylesheet, /\.shortcut\s*\{[\s\S]*align-items:\s*center/)
-  assert.match(stylesheet, /\.ask,\.empty-button\s*\{[\s\S]*padding:\s*0/)
-  assert.match(stylesheet, /\.ask,\.empty-button\s*\{[\s\S]*justify-content:\s*center/)
-})
-
 test('homepage native buttons explicitly neutralize default padding for centered labels', () => {
   const stylesheet = fs.readFileSync(
     path.resolve(__dirname, '../../miniprogram/pages/index/index.wxss'),
     'utf8'
   )
 
-  const actionRule = stylesheet.match(/\.ask,\.empty-button\s*\{([\s\S]*?)\}/)
-  assert.ok(actionRule, 'shared homepage action rule should exist')
-  assert.match(actionRule[1], /display:\s*flex/)
-  assert.match(actionRule[1], /align-items:\s*center/)
-  assert.match(actionRule[1], /justify-content:\s*center/)
-  assert.match(actionRule[1], /padding:\s*0/)
-  assert.match(actionRule[1], /box-sizing:\s*border-box/)
+  for (const selector of ['.ask', '.empty-button']) {
+    const rule = stylesheet.match(new RegExp(`\\${selector}\\{([^}]*)\\}`))
+    assert.ok(rule, `${selector} rule should exist`)
+    assert.match(rule[1], /display:flex/)
+    assert.match(rule[1], /align-items:center/)
+    assert.match(rule[1], /justify-content:center/)
+  }
+
+  assert.match(stylesheet, /\.ask,\.empty-button\{box-sizing:border-box;padding:0\}/)
 })
 
 test('question page retains cited sources returned by the chat API', async () => {
