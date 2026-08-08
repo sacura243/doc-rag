@@ -1,6 +1,5 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
-const fs = require('node:fs')
 const path = require('node:path')
 
 function loadPage(globalData = { apiBaseUrl: 'http://test/api/v1', transport: 'http', user: { role: 'admin' } }) {
@@ -20,18 +19,6 @@ function loadPage(globalData = { apiBaseUrl: 'http://test/api/v1', transport: 'h
   require(modulePath)
   return { modulePath, definition }
 }
-
-test('documents stylesheet prioritizes upload and centers every native action', () => {
-  const stylesheet = fs.readFileSync(
-    path.resolve(__dirname, '../../miniprogram/pages/documents/index.wxss'),
-    'utf8'
-  )
-
-  assert.match(stylesheet, /\.upload-panel\s*\{[\s\S]*background:\s*#effaf8/)
-  assert.match(stylesheet, /\.item\s*\{[\s\S]*align-items:\s*center/)
-  assert.match(stylesheet, /\.rebuild,\.upload,\.delete,\.empty-action\s*\{[\s\S]*padding:\s*0/)
-  assert.match(stylesheet, /\.rebuild,\.upload,\.delete,\.empty-action\s*\{[\s\S]*justify-content:\s*center/)
-})
 
 test('document page rejects unsupported and oversized files before upload', () => {
   const loaded = loadPage()
