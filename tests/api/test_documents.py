@@ -19,8 +19,10 @@ class _DownloadResponse:
 
 
 class _DownloadClient:
+    last_kwargs = {}
+
     def __init__(self, *_args, **_kwargs):
-        pass
+        _DownloadClient.last_kwargs = _kwargs
 
     def __enter__(self):
         return self
@@ -85,6 +87,7 @@ def test_administrator_can_import_document_from_cloud_storage_url(monkeypatch, t
     monkeypatch.setenv("API_DATABASE_PATH", str(tmp_path / "users.sqlite3"))
     monkeypatch.setenv("API_UPLOAD_DIR", str(upload_dir))
     monkeypatch.setenv("API_JWT_SECRET", "test-signing-secret-with-32-bytes")
+    monkeypatch.setenv("WECHAT_VERIFY_TLS", "false")
 
     from api.services import files
     from api.routers import documents
@@ -108,6 +111,7 @@ def test_administrator_can_import_document_from_cloud_storage_url(monkeypatch, t
     assert response.status_code == 201
     assert response.json() == {"files": 1, "chunks": 2, "total_chunks": 2}
     assert len(list(upload_dir.glob("*.txt"))) == 1
+    assert _DownloadClient.last_kwargs["verify"] is False
 
 
 def test_member_cannot_import_document_from_cloud_storage_url(monkeypatch, tmp_path):

@@ -53,7 +53,7 @@ def import_document_from_url(
     _user: AccessTokenUser = Depends(require_admin),
 ) -> dict:
     settings = load_api_settings()
-    path = save_remote_upload(request.url, request.filename, settings.upload_dir)
+    path = save_remote_upload(request.url, request.filename, settings.upload_dir, settings.wechat_verify_tls)
     try:
         return ingest_files(load_config(), [str(path)], workspace_id="default")
     except Exception:

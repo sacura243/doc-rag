@@ -29,7 +29,7 @@ async def save_upload(upload: UploadFile, upload_dir: Path) -> Path:
     return path
 
 
-def save_remote_upload(url: str, filename: str, upload_dir: Path) -> Path:
+def save_remote_upload(url: str, filename: str, upload_dir: Path, verify_tls: bool = True) -> Path:
     parsed = urlparse(url)
     if parsed.scheme != "https" or not parsed.hostname:
         raise HTTPException(status_code=422, detail="Cloud storage URL must use HTTPS")
@@ -54,7 +54,7 @@ def save_remote_upload(url: str, filename: str, upload_dir: Path) -> Path:
     path = upload_dir / f"{uuid4().hex}_{name}"
     total = 0
     try:
-        with httpx.Client(timeout=30, follow_redirects=False) as client:
+        with httpx.Client(timeout=30, follow_redirects=False, verify=verify_tls) as client:
             with client.stream("GET", url) as response:
                 response.raise_for_status()
                 content_length = response.headers.get("content-length")
