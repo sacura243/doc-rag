@@ -3,6 +3,11 @@ const test = require('node:test')
 const fs = require('node:fs')
 const path = require('node:path')
 
+test('homepage exposes a share payload for the mini program menu', () => {
+  const source = fs.readFileSync(path.resolve(__dirname, '../../miniprogram/pages/index/index.js'), 'utf8')
+  assert.match(source, /onShareAppMessage\s*\(\s*\)[\s\S]*path:\s*['"]\/pages\/index\/index['"]/)
+})
+
 test('homepage native buttons explicitly neutralize default padding for centered labels', () => {
   const stylesheet = fs.readFileSync(
     path.resolve(__dirname, '../../miniprogram/pages/index/index.wxss'),

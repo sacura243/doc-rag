@@ -15,6 +15,12 @@ Page({
     if (!user || (app.globalData.environment === 'development' && user.role !== 'admin')) return app.login(syncSession)
     syncSession(user)
   },
+  onShareAppMessage() {
+    return {
+      title: '知答库：企业知识库智能问答',
+      path: '/pages/index/index'
+    }
+  },
   loadOverview() {
     request({ path: '/documents' })
       .then(result => {

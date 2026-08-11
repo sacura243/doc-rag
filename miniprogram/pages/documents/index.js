@@ -28,6 +28,13 @@ Page({
     this.loadDocuments()
   },
 
+  onShareAppMessage() {
+    return {
+      title: '知答库：企业资料管理',
+      path: '/pages/documents/index'
+    }
+  },
+
   loadDocuments() {
     request({ path: '/documents' })
       .then(data => this.setData({ items: data.items || [], errorMessage: '' }))

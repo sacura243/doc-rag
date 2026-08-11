@@ -1,5 +1,6 @@
 const assert = require('node:assert/strict')
 const test = require('node:test')
+const fs = require('node:fs')
 const path = require('node:path')
 
 function loadPage(globalData = { apiBaseUrl: 'http://test/api/v1', transport: 'http', user: { role: 'admin' } }) {
@@ -19,6 +20,11 @@ function loadPage(globalData = { apiBaseUrl: 'http://test/api/v1', transport: 'h
   require(modulePath)
   return { modulePath, definition }
 }
+
+test('documents page exposes a share payload for the mini program menu', () => {
+  const source = fs.readFileSync(path.resolve(__dirname, '../../miniprogram/pages/documents/index.js'), 'utf8')
+  assert.match(source, /onShareAppMessage\s*\(\s*\)[\s\S]*path:\s*['"]\/pages\/documents\/index['"]/)
+})
 
 test('document page rejects unsupported and oversized files before upload', () => {
   const loaded = loadPage()
